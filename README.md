@@ -1,16 +1,12 @@
-# GLFW GLAD CMake Project
+# GL-graphics
 
 This project uses CMake to create a project with [GLFW](https://www.glfw.org/)/[GLAD](https://github.com/Dav1dde/glad) for use with the [OpenGL](https://www.opengl.org/) specification. The code is designed to be multi-platform and runs on Windows, Linux and MacOS.
 
 ## GLFW-CMake-Starter
 
-This project used a template called [GLFW-CMake-Starter](https://github.com/juliettef/GLFW-CMake-starter). Once cloned, this template can be used to generate the makefiles for GLFW from the GLFW git submodule. This template has been used for its multi-platform compatability. This template can be cloned using the following:
+This project used a template called [GLFW-CMake-Starter](https://github.com/juliettef/GLFW-CMake-starter). Once cloned, this template can be used to generate the makefiles for GLFW from the GLFW git submodule. This template has been used for its multi-platform compatability.
 
-```
-git clone --recursive https://github.com/juliettef/GLFW-CMake-starter
-```
-
-## Using CMake to create the project
+## Using CMake to build the project
 
 From a command prompt in the project top-level directory:
 1. `mkdir build`
