@@ -1,5 +1,5 @@
 /****************
- * Title:   main.cpp
+ * Title:   triangles.cpp
  * Created: 2025/01/06
  * Author:  Joseph Smith
  ***************/
@@ -19,10 +19,15 @@ const char* vertexShaderSource = "#version 460 core\n"
     "void main() {\n"
     "    gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
     "}\0";
-const char* fragmentShaderSource = "#version 460 core\n"
+const char* orangeFragmentShaderSource = "#version 460 core\n"
     "out vec4 FragColor;\n"
     "void main() {\n"
     "    FragColor = vec4(1.0, 0.5, 0.2, 1.0);\n"
+    "}\0";
+const char* yellowFragmentShaderSource = "#version 460 core\n"
+    "out vec4 FragColor;\n"
+    "void main() {\n"
+    "    FragColor = vec4(0.5, 0.5, 0.1, 1.0);\n"
     "}\0";
 
 
@@ -39,6 +44,18 @@ void processInput(GLFWwindow* window) {
 }
 
 
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    // Toggles between filled and lined polygons
+    if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
+        GLint polygonMode[2];
+        glGetIntegerv(GL_POLYGON_MODE, polygonMode);
+        polygonMode[0] = (polygonMode[0] == GL_LINE) ? GL_FILL : GL_LINE;
+        glPolygonMode(GL_FRONT_AND_BACK, polygonMode[0]);
+    }
+}
+
+
 void checkShaderCompilation(GLuint shader, const char* identifier) {
     int success;
     char infoLog[512];
@@ -49,6 +66,21 @@ void checkShaderCompilation(GLuint shader, const char* identifier) {
             "::COMPILATION_FAILED\n" << infoLog << std::endl;
     } else {
         std::cout << "SUCCESS::SHADER::" << identifier <<
+            "::COMPILATION_SUCCESS" << std::endl;
+    }
+}
+
+
+void checkProgramLinkage(GLuint program, const char* identifier) {
+    int success;
+    char infoLog[512];
+    glGetProgramiv(program, GL_LINK_STATUS, &success);
+    if (!success) {
+        glGetProgramInfoLog(program, 512, NULL, infoLog);
+        std::cout << "ERROR::PROGRAM::" << identifier << 
+            "::COMPILATION_FAILED\n" << infoLog << std::endl;
+    } else {
+        std::cout << "SUCCESS::SHADER::" << identifier << 
             "::COMPILATION_SUCCESS" << std::endl;
     }
 }
@@ -98,62 +130,80 @@ int main(void)
     glCompileShader(vertexShader);
     checkShaderCompilation(vertexShader, VAR_NAME(vertexShader));
 
-    // Setup fragment shader and compile
-    unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-    glCompileShader(fragmentShader);
-    checkShaderCompilation(fragmentShader, VAR_NAME(fragmentShader));
+    // Setup orange fragment shader and compile
+    unsigned int orangeFragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(orangeFragmentShader, 1, &orangeFragmentShaderSource, NULL);
+    glCompileShader(orangeFragmentShader);
+    checkShaderCompilation(orangeFragmentShader, VAR_NAME(orangeFragmentShader));
+    // Setup yellow fragment shader and compile
+    unsigned int yellowFragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(yellowFragmentShader, 1, &yellowFragmentShaderSource, NULL);
+    glCompileShader(yellowFragmentShader);
+    checkShaderCompilation(yellowFragmentShader, VAR_NAME(yellowFragmentShader));
 
-    // Setup shader program
-    unsigned int shaderProgram;
-    shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
+    // Setup orange shader program
+    unsigned int orangeShaderProgram;
+    orangeShaderProgram = glCreateProgram();
+    glAttachShader(orangeShaderProgram, vertexShader);
+    glAttachShader(orangeShaderProgram, orangeFragmentShader);
+    glLinkProgram(orangeShaderProgram);
     // Check Program linkage success
-    int success;
-    char infoLog[512];
-    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-    if (!success) {
-        glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-        std::cout << "ERROR::PROGRAM::shaderProgram::COMPILATION_FAILED\n" <<
-            infoLog << std::endl;
-    } else {
-        std::cout << "SUCCESS::SHADER::shaderProgram::COMPILATION_SUCCESS" <<
-            std::endl;
-    }
+    checkProgramLinkage(orangeShaderProgram, VAR_NAME(orangeShaderProgram));
+
+    // Setup yellow shader program
+    unsigned int yellowShaderProgram;
+    yellowShaderProgram = glCreateProgram();
+    glAttachShader(yellowShaderProgram, vertexShader);
+    glAttachShader(yellowShaderProgram, yellowFragmentShader);
+    glLinkProgram(yellowShaderProgram);
+    // Check Program linkage success
+    checkProgramLinkage(yellowShaderProgram, VAR_NAME(yellowShaderProgram));
 
     // Delete unused shader objects
     glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
+    glDeleteShader(orangeFragmentShader);
+    glDeleteShader(yellowFragmentShader);
 
     /*************************************************
      * SETUP VERTICES, BUFFERS AND VERTEX ATTRIBUTES
      *************************************************/
 
     float vertices[] {
-        -0.5f, -0.5f, 0.0f,
-         0.5f, -0.5f, 0.0f,
-         0.0f,  0.5f, 0.0f
+        -0.8f,  0.5f, 0.0f,
+        -0.8f, -0.5f, 0.0f,
+        -0.2f, -0.5f, 0.0f,
+        0.8f,  0.5f, 0.0f,
+        0.8f, -0.5f, 0.0f,
+        0.2f, -0.5f, 0.0f
+    };
+    unsigned int indices[] = {
+        0, 1, 2,
+        3, 4, 5
     };
 
     // Setup Vertex Buffer Object (VBO) and Vertex Array Object (VAO)
-    unsigned int VAO, VBO;
+    unsigned int VAO, VBO, EBO;
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO);
 
-    // Bind VAO first to stop VBO code duplication
+    // Bind VAO first to stop VBO/EBO code duplication
     glBindVertexArray(VAO);
 
     // Copy vertices array into the vertex buffer
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
+    // Copy indices array into the element buffer
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
     // Link vertex attributes
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    // Set up keypress callback
+    glfwSetKeyCallback(window, key_callback);
 
     /***************
      * RENDER LOOP
@@ -168,9 +218,10 @@ int main(void)
         glClear(GL_COLOR_BUFFER_BIT);
 
         // Draw triangle
-        glUseProgram(shaderProgram);
+        glUseProgram(orangeShaderProgram);
         glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        glBindVertexArray(0);
 
         // Swap buffers, poll input
         glfwSwapBuffers(window);
@@ -180,7 +231,9 @@ int main(void)
     // Deallocated no longer needed resources
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
-    glDeleteProgram(shaderProgram);
+    glDeleteBuffers(1, &EBO);
+    glDeleteProgram(orangeShaderProgram);
+    glDeleteProgram(yellowShaderProgram);
 
     glfwTerminate();
     return 0;
