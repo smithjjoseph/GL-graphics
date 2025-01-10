@@ -21,7 +21,8 @@ endif()
 set(GLAD-SRC src/glad.c)
 
 set(GL-GRAPHICS-SRC
-    src/main.cpp
+    src/triangles.cpp
+    src/shaders.cpp
 )
 
 # Add warnings to compilation (Add /WX for MSVC or -Werror for other to fail on error)
@@ -31,14 +32,18 @@ else()
     set(COMPILE-FLAGS "-Wall -Wextra -Wpedantic -Wno-unused")
 endif()
 # Only checks project files
-foreach(file ${GL-GRAPHICS-SRC})
-    message(STATUS "Setting compile flags for file: ${file}")
-    set_source_files_properties(${file} PROPERTIES COMPILE_FLAGS ${COMPILE-FLAGS})
+foreach(source ${GL-GRAPHICS-SRC})
+    message(STATUS "Setting compile flags for file: ${source}")
+    set_source_files_properties(${source} PROPERTIES COMPILE_FLAGS ${COMPILE-FLAGS})
 endforeach()
 
-# Add sources and link libraries
-add_executable(GL-Graphics WIN32 ${GL-GRAPHICS-SRC} ${GLAD-SRC})
-target_link_libraries(GL-Graphics ${OPENGL_LIBRARIES} glfw)
+# Create an executable for each source also link libraries
+foreach(source ${GL-GRAPHICS-SRC})
+    get_filename_component(filename ${source} NAME_WE)
+    message(STATUS "Adding executable for ${source}")
+    add_executable(${filename} WIN32 ${source} ${GLAD-SRC})
+    target_link_libraries(${filename} ${OPENGL_LIBRARIES} glfw)
+endforeach()
 
 # Sets the default startup peoject for a Visual Studio solution (.sln)
 if(MSVC)
