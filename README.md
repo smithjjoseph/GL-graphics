@@ -1,12 +1,24 @@
 # GL-graphics
 
-This project uses CMake to create a project with [GLFW](https://www.glfw.org/)/[GLAD](https://github.com/Dav1dde/glad) for use with the [OpenGL](https://www.opengl.org/) specification. The code is designed to be multi-platform and runs on Windows, Linux and MacOS.
+This project uses CMake and MinGW to build a project with [GLFW](https://www.glfw.org/)/[GLAD](https://github.com/Dav1dde/glad) for use with the [OpenGL](https://www.opengl.org/) specification. This project is designed to be multi-platform and runs on most C++ build systems including Windows, Linux and MacOS.
 
-## GLFW-CMake-Starter
+This README acts as a source of information for this project, an instructional for building this project as well as a journal of my learnings over the course of this project.
+
+Much of this project will follow alongside the extremely helpful teachings at https://learnopengl.com.
+
+## CMake
+
+### GLFW-CMake-Starter
 
 This project used a template called [GLFW-CMake-Starter](https://github.com/juliettef/GLFW-CMake-starter). Once cloned, this template can be used to generate the makefiles for GLFW from the GLFW git submodule. This template has been used for its multi-platform compatability.
 
-## Using CMake to build the project
+### Modifications
+
+- Add warning flags to compilation of each project source file
+- Change to create an executable for each project source file
+- Modified to use newly generated version of GLAD [(continued)](#glad)
+
+### Using CMake to build the project
 
 From a command prompt in the project top-level directory:
 1. `mkdir build`
