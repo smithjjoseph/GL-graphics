@@ -1,15 +1,14 @@
-// TODO:: https://learnopengl.com/Getting-started/Shaders
-
 /****************
- * Title:   shaders.cpp
- * Created: 2025/01/10
+ * Title:   02_shaders/custom/main.cpp
+ * Created: 2025/03/20
  * Author:  Joseph Smith
  ***************/
 
 #include <iostream>
-
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+
+#include "shader.hpp"
 
 const unsigned int WIN_WIDTH = 800;
 const unsigned int WIN_HEIGHT = 600;
@@ -28,8 +27,8 @@ void processInput(GLFWwindow* window) {
 }
 
 
-int main(void)
-{
+ int main(void)
+ {
     /****************
      * SETUP WINDOW
      ****************/
@@ -62,6 +61,43 @@ int main(void)
         return -1;
     }
 
+
+    // BUILD AND COMPILE SHADERS
+    Shader customShader("../src/02_shaders/custom/shader.vert",
+                        "../src/02_shaders/custom/shader.frag");
+
+    /*************************************************
+     * SETUP VERTICES, BUFFERS AND VERTEX ATTRIBUTES
+     *************************************************/
+
+    float vertices[] {
+        // positions           // colors
+        0.5f,  -0.5f, 0.0f,    1.0f, 0.0f, 0.0f,    // BR
+        -0.5f, -0.5f, 0.0f,    0.0f, 1.0f, 0.0f,    // BL
+        0.0f,   0.5f, 0.0f,    0.0f, 0.0f, 1.0f     // T
+    };
+
+    // Setup Vertex Buffer Object, Vertex Array Object, Element Buffer Object
+    unsigned int VAO, VBO;
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+
+    // Bind VAO first to stop VBO code duplication
+    glBindVertexArray(VAO);
+
+    // Copy vertices array into the vertex buffer
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    // Link vertex attributes for position and colour attributes
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float),
+                          (void*)0);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float),
+                          (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+
     /***************
      * RENDER LOOP
      ***************/
@@ -74,10 +110,19 @@ int main(void)
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
+        // Draw triangle
+        customShader.use();
+        glBindVertexArray(VAO);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+
         // Swap buffers, poll input
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
+
+    // Deallocated no longer needed resources
+    glDeleteVertexArrays(1, &VAO);
+    glDeleteBuffers(1, &VBO);
 
     glfwTerminate();
     return 0;

@@ -18,11 +18,28 @@ if(MSVC)
     SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /ENTRY:mainCRTStartup")
 endif()
 
+# Setup for each executable
 set(GLAD-SRC src/glad.c)
 
+set(TRIANGLES-SRC src/01_triangle/triangles/main.cpp)
+
+set(SHADERS-QUESTION-SRC src/02_shaders/question/main.cpp)
+
+set(SHADERS-RAINBOW-SRC src/02_shaders/rainbow/main.cpp)
+
+set(SHADERS-CUSTOM-SRC
+    src/02_shaders/custom/main.cpp
+    src/02_shaders/custom/shader.hpp
+    src/02_shaders/custom/shader.vert
+    src/02_shaders/custom/shader.frag
+)
+
 set(GL-GRAPHICS-SRC
-    src/triangles.cpp
-    src/shaders.cpp
+    TRIANGLES-SRC
+    SHADERS-QUESTION-SRC
+    SHADERS-RAINBOW-SRC
+    SHADERS-CUSTOM-SRC
+    TEXTURES-BASIC-SRC
 )
 
 # Add warnings to compilation (Add /WX for MSVC or -Werror for other to fail on error)
@@ -39,13 +56,22 @@ endforeach()
 
 # Create an executable for each source also link libraries
 foreach(source ${GL-GRAPHICS-SRC})
-    get_filename_component(filename ${source} NAME_WE)
-    message(STATUS "Adding executable for ${source}")
-    add_executable(${filename} WIN32 ${source} ${GLAD-SRC})
+    # Get list of sources
+    set(source-list ${${source}})
+    # Create name of executable
+    list(GET source-list 0 main-file)
+    get_filename_component(filename ${main-file} DIRECTORY)
+    string(REPLACE "src/" "" filename ${filename})
+    string(REPLACE "/" "_" filename ${filename})
+    message("[+] EXECUTABLE for ${source}")
+    message("    FILENAME: ${filename}")
+    message("    SOURCES: ${source-list}")
+
+    add_executable(${filename} WIN32 ${source-list} ${GLAD-SRC})
     target_link_libraries(${filename} ${OPENGL_LIBRARIES} glfw)
 endforeach()
 
-# Sets the default startup peoject for a Visual Studio solution (.sln)
+# Sets the default startup project for a Visual Studio solution (.sln)
 if(MSVC)
     if(${CMAKE_VERSION} VERSION_LESS "3.6.0")
         message("\n\t[ WARNING ]\n\n\tCMake version lower than 3.6.\n\n\t - Please update CMake and rerun; OR\n\t - Manually set 'GL-Graphics' as StartUp Project in Visual Studio.\n")
